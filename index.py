@@ -47,24 +47,24 @@ def accept_temperature():
     rrdname = "./rrd/%s.rrd" % host_name
     if not os.path.exists(rrdname):
         rrdtool.create(rrdname, '--start', 'now',
-                       '--step', '420',
+                       '--step', '600',
                        'RRA:AVERAGE:0.5:1:1200',
                        'DS:ds0:GAUGE:600:-273:5000',
                        'DS:ds1:GAUGE:600:-273:5000'
                       )
     hdd_temps = request.json['hdd']
     if hdd_temps:
-        max_hdd = int(hdd_temps[0])
+        max_hdd = float(hdd_temps[0])
         for i in hdd_temps:
-            i = int(i)
+            i = float(i)
             if i > max_hdd:
                 max_hdd = i
         rrdtool.update(rrdname, '-tds1', 'N:%s' % max_hdd)
         cpu_temps = request.json['cpu']
     if cpu_temps:
-        max_cpu = int(cpu_temps[0])
+        max_cpu = float(cpu_temps[0])
         for i in cpu_temps:
-            i = int(i)
+            i = float(i)
             if i > max_cpu:
                 max_cpu = i
         rrdtool.update(rrdname, '-tds0', 'N:%s' % max_cpu)
