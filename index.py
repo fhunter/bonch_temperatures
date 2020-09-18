@@ -17,6 +17,7 @@ BASENAME = "/temperature/"
 def main():
     " Main page, returns links to graphs generated from RRD databases "
     names = glob.glob("./rrd/*.rrd")
+    names.sort()
     new_names = []
     for i in names:
         new_names.append(i.replace('./rrd/', '').replace('.rrd', ''))
@@ -26,6 +27,7 @@ def main():
 def graph(name):
     " Graph endpoint, returns generated graph "
     test = rrdtool.graphv("-", "--start", "-1w", "-w 800", "--title=Температуры %s" % name,
+                          "-u 60", "-l 15",  
                           "DEF:cpu_temp=rrd/%s.rrd:ds0:MAX" % name,
                           "DEF:hdd_temp=rrd/%s.rrd:ds1:MAX" % name,
                           "LINE1:cpu_temp#0000FF:Процессор",
