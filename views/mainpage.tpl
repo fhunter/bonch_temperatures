@@ -1,6 +1,5 @@
 <html>
 <head>
-<meta http-equiv="refresh" content="30">
 </head>
 <body>
 <h1>Список компьютеров</h1>
