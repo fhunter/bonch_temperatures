@@ -53,21 +53,22 @@ def accept_temperature():
                        'DS:ds1:GAUGE:600:-273:5000'
                       )
     hdd_temps = request.json['hdd']
+    max_hdd = float('-inf')
+    max_cpu = float('-inf')
     if hdd_temps:
         max_hdd = float(hdd_temps[0])
         for i in hdd_temps:
             i = float(i)
             if i > max_hdd:
                 max_hdd = i
-        rrdtool.update(rrdname, '-tds1', 'N:%s' % max_hdd)
-        cpu_temps = request.json['cpu']
+    cpu_temps = request.json['cpu']
     if cpu_temps:
         max_cpu = float(cpu_temps[0])
         for i in cpu_temps:
             i = float(i)
             if i > max_cpu:
                 max_cpu = i
-        rrdtool.update(rrdname, '-tds0', 'N:%s' % max_cpu)
+    rrdtool.update(rrdname, 'N:%s:%s' % (max_cpu, max_hdd))
     return dict()
 
 
