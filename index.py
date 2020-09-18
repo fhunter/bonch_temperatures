@@ -25,11 +25,11 @@ def main():
 @route('/graph/<name>')
 def graph(name):
     " Graph endpoint, returns generated graph "
-    test = rrdtool.graphv("-", "--start", "-1m", "-w 800", "--title=Температуры %s" % name,
+    test = rrdtool.graphv("-", "--start", "-1w", "-w 800", "--title=Температуры %s" % name,
                           "DEF:cpu_temp=rrd/%s.rrd:ds0:MAX" % name,
                           "DEF:hdd_temp=rrd/%s.rrd:ds1:MAX" % name,
                           "LINE1:cpu_temp#0000FF:Процессор",
-                          "LINE2:hdd_temp#00FFFF:Диск\\j",
+                          "LINE2:hdd_temp#FF0000:Диск\\j",
                           "GPRINT:cpu_temp:MAX:Максимум\\: процессор\\: %3.0lf °C",
                           "GPRINT:hdd_temp:MAX:жёсткий диск\\: %3.0lf °C\\j",
                           "GPRINT:cpu_temp:MAX:Текущий\\: процессор\\: %3.0lf °C",
@@ -48,9 +48,14 @@ def accept_temperature():
     if not os.path.exists(rrdname):
         rrdtool.create(rrdname, '--start', 'now',
                        '--step', '600',
+                       'DS:ds0:GAUGE:1200:-273:5000',
                        'RRA:AVERAGE:0.5:1:1200',
-                       'DS:ds0:GAUGE:600:-273:5000',
-                       'DS:ds1:GAUGE:600:-273:5000'
+                       'RRA:MIN:0.5:1:1200',
+                       'RRA:MAX:0.5:1:1200',
+                       'DS:ds1:GAUGE:1200:-273:5000',
+                       'RRA:AVERAGE:0.5:1:1200',
+                       'RRA:MIN:0.5:1:1200',
+                       'RRA:MAX:0.5:1:1200'
                       )
     hdd_temps = request.json['hdd']
     max_hdd = float('-inf')
