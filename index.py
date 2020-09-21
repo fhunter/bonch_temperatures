@@ -32,6 +32,8 @@ def graph(name):
                           "DEF:hdd_temp=rrd/%s.rrd:ds1:MAX" % name,
                           "LINE1:cpu_temp#0000FF:Процессор",
                           "LINE2:hdd_temp#FF0000:Диск\\j",
+                          "CDEF:unavailable=hdd_temp,UN,INF,0,IF",
+                          "AREA:unavailable#f0f0f0",
                           "GPRINT:cpu_temp:MAX:Максимум\\: процессор\\: %3.0lf °C",
                           "GPRINT:hdd_temp:MAX:жёсткий диск\\: %3.0lf °C\\j",
                           "GPRINT:cpu_temp:MAX:Текущий\\: процессор\\: %3.0lf °C",
