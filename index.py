@@ -7,26 +7,33 @@ import os.path
 import glob
 import socket
 import bottle
-from bottle import route, view, request
+from bottle import route, view, request, response, redirect
 import rrdtool
 
 BASENAME = "/temperature/"
 
 @route('/')
-@view('mainpage')
 def main():
+    " Main page, redirects to proper parameters "
+    redirect(BASENAME+'/i/w/')
+
+@route('/<grouped:re:[g|i]>/<period:re:[d|w|m|y]>/')
+@view('mainpage')
+def main_grouped(grouped, period):
     " Main page, returns links to graphs generated from RRD databases "
     names = glob.glob("./rrd/*.rrd")
     names.sort()
     new_names = []
     for i in names:
         new_names.append(i.replace('./rrd/', '').replace('.rrd', ''))
-    return dict(names=new_names, basename=BASENAME)
+    return dict(names=new_names, basename=BASENAME, grouped=grouped, period=period)
 
-@route('/graph/<name>')
-def graph(name):
+
+@route('/graph/<grouped:re:[g|i]>/<period:re:[d|w|m|y]>/<name>')
+def graph(name,grouped,period):
     " Graph endpoint, returns generated graph "
-    test = rrdtool.graphv("-", "--start", "-1w", "-w 800", "--title=Температуры %s" % name,
+    pd = "-1"+period
+    test = rrdtool.graphv("-", "--start", pd, "-w 800", "--title=Температуры %s" % name,
                           "-u 60", "-l 15",  
                           "DEF:cpu_temp=rrd/%s.rrd:ds0:MAX" % name,
                           "DEF:hdd_temp=rrd/%s.rrd:ds1:MAX" % name,
@@ -39,6 +46,8 @@ def graph(name):
                           "GPRINT:cpu_temp:MAX:Текущий\\: процессор\\: %3.0lf °C",
                           "GPRINT:hdd_temp:MAX:жёсткий диск\\: %3.0lf °C\\j"
                          )
+
+    response.set_header('Content-type', 'image/png')
     return str(test['image'])
 
 @route('/post', method='POST')
