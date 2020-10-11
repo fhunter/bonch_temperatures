@@ -106,18 +106,10 @@ def accept_temperature():
     max_hdd = float('-inf')
     max_cpu = float('-inf')
     if hdd_temps:
-        max_hdd = float(hdd_temps[0])
-        for i in hdd_temps:
-            i = float(i)
-            if i > max_hdd:
-                max_hdd = i
+        max_hdd = max([float(x) for x in hdd_temps])
     cpu_temps = request.json['cpu']
     if cpu_temps:
-        max_cpu = float(cpu_temps[0])
-        for i in cpu_temps:
-            i = float(i)
-            if i > max_cpu:
-                max_cpu = i
+        max_cpu = max([float(x) for x in cpu_temps])
     rrdtool.update(rrdname, 'N:%s:%s' % (max_cpu, max_hdd))
     return dict()
 
