@@ -55,7 +55,9 @@ def graph(name,grouped,period):
                               "AREA:unavailable#f0f0f0",
                               "GPRINT:cpu_temp:MAX:Максимум\\: процессор\\: %3.0lf °C",
                               "GPRINT:hdd_temp:MAX:жёсткий диск\\: %3.0lf °C\\j",
-                              "GPRINT:cpu_temp:LAST:Текущий\\: процессор\\: %3.0lf °C",
+                              "GPRINT:cpu_temp:AVERAGE:Среднее\\: процессор\\: %3.0lf °C",
+                              "GPRINT:hdd_temp:AVERAGE:жёсткий диск\\: %3.0lf °C\\j",
+                              "GPRINT:cpu_temp:LAST:Последнее\\: процессор\\: %3.0lf °C",
                               "GPRINT:hdd_temp:LAST:жёсткий диск\\: %3.0lf °C\\j"
                              )
     else:
@@ -69,8 +71,8 @@ def graph(name,grouped,period):
 	for i in new_names:
 	    new_arguments = ( "DEF:cpu_temp%d=rrd/%s.rrd:ds0:MAX" % (j,i),
                               "DEF:hdd_temp%d=rrd/%s.rrd:ds1:MAX" % (j,i),
-                              "LINE1:cpu_temp%d#0000FF: %s процессор" % (j, i),
-                              "LINE2:hdd_temp%d#FF0000:диск\\j" % (j),
+                              "LINE1:cpu_temp%d#00%02xFF: %s процессор" % (j,j*8, i),
+                              "LINE2:hdd_temp%d#FF%02x00:диск\\j" % (j,j*8),
 #                              "CDEF:unavailable%d=hdd_temp%d,UN,INF,0,IF" % (j,j),
 #                              "AREA:unavailable%d#f0f0f0" % (j),
                               "GPRINT:cpu_temp%d:MAX:Максимум\\: процессор\\: %%3.0lf °C" %(j),
