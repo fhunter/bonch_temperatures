@@ -73,8 +73,6 @@ def graph(name,grouped,period):
                               "DEF:hdd_temp%d=rrd/%s.rrd:ds1:MAX" % (j,i),
                               "LINE1:cpu_temp%d#00%02xFF: %s процессор" % (j,j*8, i),
                               "LINE2:hdd_temp%d#FF%02x00:диск\\j" % (j,j*8),
-#                              "CDEF:unavailable%d=hdd_temp%d,UN,INF,0,IF" % (j,j),
-#                              "AREA:unavailable%d#f0f0f0" % (j),
                               "GPRINT:cpu_temp%d:MAX:Максимум\\: процессор\\: %%3.0lf °C" %(j),
                               "GPRINT:hdd_temp%d:MAX:жёсткий диск\\: %%3.0lf °C\\j" % (j))
             j=j+1
