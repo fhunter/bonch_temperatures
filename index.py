@@ -7,10 +7,19 @@ import os.path
 import glob
 import socket
 import bottle
+import re
 from bottle import route, view, request, response, redirect
 import rrdtool
 
 BASENAME = "/temperature/"
+
+def join_names(names):
+    new_names = []
+    for i in names:
+	tmp = re.sub(r"^(a[0-9][0-9][0-9]).*$","\g<1>",i)
+	if not tmp in new_names:
+	    new_names.append(tmp)
+    return new_names
 
 @route('/')
 def main():
@@ -26,6 +35,8 @@ def main_grouped(grouped, period):
     new_names = []
     for i in names:
         new_names.append(i.replace('./rrd/', '').replace('.rrd', ''))
+    if grouped == "g":
+	new_names = join_names(new_names)
     return dict(names=new_names, basename=BASENAME, grouped=grouped, period=period)
 
 
