@@ -44,8 +44,8 @@ def graph(name,grouped,period):
                               "AREA:unavailable#f0f0f0",
                               "GPRINT:cpu_temp:MAX:Максимум\\: процессор\\: %3.0lf °C",
                               "GPRINT:hdd_temp:MAX:жёсткий диск\\: %3.0lf °C\\j",
-                              "GPRINT:cpu_temp:MAX:Текущий\\: процессор\\: %3.0lf °C",
-                              "GPRINT:hdd_temp:MAX:жёсткий диск\\: %3.0lf °C\\j"
+                              "GPRINT:cpu_temp:LAST:Текущий\\: процессор\\: %3.0lf °C",
+                              "GPRINT:hdd_temp:LAST:жёсткий диск\\: %3.0lf °C\\j"
                              )
     else:
         names = glob.glob("./rrd/%s*.rrd" % name)
@@ -58,14 +58,15 @@ def graph(name,grouped,period):
 	for i in new_names:
 	    new_arguments = ( "DEF:cpu_temp%d=rrd/%s.rrd:ds0:MAX" % (j,i),
                               "DEF:hdd_temp%d=rrd/%s.rrd:ds1:MAX" % (j,i),
-                              "LINE%d:cpu_temp%d#0000FF:Процессор" % (j,j),
-                              "LINE%d:hdd_temp%d#FF0000:Диск\\j" % (j*2+1,j),
+                              "LINE1:cpu_temp%d#0000FF: %s процессор" % (j, i),
+                              "LINE2:hdd_temp%d#FF0000:диск\\j" % (j),
+#                              "CDEF:unavailable%d=hdd_temp%d,UN,INF,0,IF" % (j,j),
+#                              "AREA:unavailable%d#f0f0f0" % (j),
                               "GPRINT:cpu_temp%d:MAX:Максимум\\: процессор\\: %%3.0lf °C" %(j),
-                              "GPRINT:hdd_temp%d:MAX:жёсткий диск\\: %%3.0lf °C\\j" % (j),
-                              "GPRINT:cpu_temp%d:MAX:Текущий\\: процессор\\: %%3.0lf °C" % (j),
-                              "GPRINT:hdd_temp%d:MAX:жёсткий диск\\: %%3.0lf °C\\j" %(j))
+                              "GPRINT:hdd_temp%d:MAX:жёсткий диск\\: %%3.0lf °C\\j" % (j))
             j=j+1
 	    arguments = arguments + new_arguments
+# Add arguments
         test = rrdtool.graphv(*arguments)
     response.set_header('Content-type', 'image/png')
     return str(test['image'])
