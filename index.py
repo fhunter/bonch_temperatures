@@ -24,12 +24,16 @@ def join_names(names):
 @route('/')
 def main():
     " Main page, redirects to proper parameters "
-    redirect(BASENAME+'/i/w/')
+    i_g = request.get_cookie('i_g',default='i')
+    period = request.get_cookie('period',default='w')
+    redirect(BASENAME+'/%s/%s/' % (i_g, period))
 
 @route('/<grouped:re:[g|i]>/<period:re:[d|w|m|y]>/')
 @view('mainpage')
 def main_grouped(grouped, period):
     " Main page, returns links to graphs generated from RRD databases "
+    response.set_cookie('i_g',grouped,path=BASENAME)
+    response.set_cookie('period',period,path=BASENAME)
     names = glob.glob("./rrd/*.rrd")
     names.sort()
     new_names = []
@@ -51,7 +55,7 @@ def graph(name,grouped,period):
                               "DEF:hdd_temp=rrd/%s.rrd:ds1:MAX" % name,
                               "LINE1:cpu_temp#0000FF:Процессор",
                               "LINE2:hdd_temp#FF0000:Диск\\j",
-                              "CDEF:unavailable=hdd_temp,UN,INF,0,IF",
+                              "CDEF:unavailable=cpu_temp,UN,INF,0,IF",
                               "AREA:unavailable#f0f0f0",
                               "GPRINT:cpu_temp:MAX:Максимум\\: процессор\\: %3.0lf °C",
                               "GPRINT:hdd_temp:MAX:жёсткий диск\\: %3.0lf °C\\j",
