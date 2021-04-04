@@ -98,6 +98,7 @@ def accept_temperature():
         rrdtool.create(rrdname, '--start', 'now',
                        '--step', '600',
                        'DS:ds0:GAUGE:1200:-273:5000',
+                       'DS:ds1:GAUGE:1200:-273:5000',
                        'RRA:AVERAGE:0.5:1:1200',
                        'RRA:AVERAGE:0.5:6:1200',
                        'RRA:AVERAGE:0.5:24:1200',
@@ -106,17 +107,7 @@ def accept_temperature():
                        'RRA:MIN:0.5:24:1200',
                        'RRA:MAX:0.5:1:1200',
                        'RRA:MAX:0.5:6:1200',
-                       'RRA:MAX:0.5:24:1200',
-                       'DS:ds1:GAUGE:1200:-273:5000',
-                       'RRA:AVERAGE:0.5:1:1200',
-                       'RRA:AVERAGE:0.5:6:1200',
-                       'RRA:AVERAGE:0.5:24:1200',
-                       'RRA:MIN:0.5:1:1200',
-                       'RRA:MIN:0.5:6:1200',
-                       'RRA:MIN:0.5:24:1200',
-                       'RRA:MAX:0.5:1:1200'
-                       'RRA:MAX:0.5:6:1200',
-                       'RRA:MAX:0.5:24:1200',
+                       'RRA:MAX:0.5:24:1200'
                       )
     hdd_temps = request.json['hdd']
     max_hdd = float('-inf')
