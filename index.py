@@ -16,7 +16,7 @@ BASENAME = "/temperature/"
 def join_names(names):
     new_names = []
     for i in names:
-	tmp = re.sub(r"^(a[0-9][0-9][0-9]).*$","\g<1>",i)
+	tmp = re.sub(r"^(a[0-9][0-9][0-9]|p4n).*$","\g<1>",i)
 	if not tmp in new_names:
 	    new_names.append(tmp)
     return new_names
