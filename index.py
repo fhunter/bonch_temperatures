@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # coding=utf-8
 
 " Temperature monitoring server side script "
@@ -6,29 +6,33 @@
 import os.path
 import glob
 import socket
-import bottle
 import re
+import bottle
 from bottle import route, view, request, response, redirect
 import rrdtool
 
-BASENAME = "/temperature/"
+
+app = application = bottle.Bottle()
+
+BASENAME = "/temperature"
 
 def join_names(names):
+    """ Grouping of computer names """
     new_names = []
     for i in names:
-	tmp = re.sub(r"^(a[0-9][0-9][0-9]|p4n).*$","\g<1>",i)
-	if not tmp in new_names:
-	    new_names.append(tmp)
+        tmp = re.sub(r"^(a[0-9][0-9][0-9]|p4n|depo).*$",r"\g<1>",i)
+        if not tmp in new_names:
+            new_names.append(tmp)
     return new_names
 
-@route('/')
+@app.route(BASENAME + '/')
 def main():
     " Main page, redirects to proper parameters "
     i_g = request.get_cookie('i_g',default='i')
     period = request.get_cookie('period',default='w')
     redirect(BASENAME+'/%s/%s/' % (i_g, period))
 
-@route('/<grouped:re:[g|i]>/<period:re:[d|w|m|y]>/')
+@app.route(BASENAME + '/<grouped:re:[g|i]>/<period:re:[d|w|m|y]>/')
 @view('mainpage')
 def main_grouped(grouped, period):
     " Main page, returns links to graphs generated from RRD databases "
@@ -40,17 +44,17 @@ def main_grouped(grouped, period):
     for i in names:
         new_names.append(i.replace('./rrd/', '').replace('.rrd', ''))
     if grouped == "g":
-	new_names = join_names(new_names)
+        new_names = join_names(new_names)
     return dict(names=new_names, basename=BASENAME, grouped=grouped, period=period)
 
 
-@route('/graph/<grouped:re:[g|i]>/<period:re:[d|w|m|y]>/<name>')
+@app.route(BASENAME + '/graph/<grouped:re:[g|i]>/<period:re:[d|w|m|y]>/<name>')
 def graph(name,grouped,period):
     " Graph endpoint, returns generated graph "
-    pd = "-1"+period
+    past_date = "-1"+period
     if grouped == "i":
-        test = rrdtool.graphv("-", "--start", pd, "-w 800", "--title=Температуры %s" % name,
-                              "-u 60", "-l 15",  
+        test = rrdtool.graphv("-", "--start", past_date, "-w 800", "--title=Температуры %s" % name,
+                              "-u 60", "-l 15",
                               "DEF:cpu_temp=rrd/%s.rrd:ds0:MAX" % name,
                               "DEF:hdd_temp=rrd/%s.rrd:ds1:MAX" % name,
                               "LINE1:cpu_temp#0000FF:Процессор",
@@ -70,23 +74,27 @@ def graph(name,grouped,period):
         new_names = []
         for i in names:
             new_names.append(i.replace('./rrd/', '').replace('.rrd', ''))
-	arguments = ("-", "--start", pd, "-w 800", "--title=Температуры %s" % name, "-u 60", "-l 15")
-	j=1
-	for i in new_names:
-	    new_arguments = ( "DEF:cpu_temp%d=rrd/%s.rrd:ds0:MAX" % (j,i),
+        arguments = (
+                "-", "--start", past_date,
+                "-w 800", "--title=Температуры %s" % name,
+                "-u 60", "-l 15"
+                )
+        j=1
+        for i in new_names:
+            new_arguments = ( "DEF:cpu_temp%d=rrd/%s.rrd:ds0:MAX" % (j,i),
                               "DEF:hdd_temp%d=rrd/%s.rrd:ds1:MAX" % (j,i),
                               "LINE1:cpu_temp%d#00%02xFF: %s процессор" % (j,j*8, i),
                               "LINE2:hdd_temp%d#FF%02x00:диск\\j" % (j,j*8),
                               "GPRINT:cpu_temp%d:MAX:Максимум\\: процессор\\: %%3.0lf °C" %(j),
                               "GPRINT:hdd_temp%d:MAX:жёсткий диск\\: %%3.0lf °C\\j" % (j))
             j=j+1
-	    arguments = arguments + new_arguments
+            arguments = arguments + new_arguments
 # Add arguments
         test = rrdtool.graphv(*arguments)
     response.set_header('Content-type', 'image/png')
     return str(test['image'])
 
-@route('/post', method='POST')
+@app.route(BASENAME + '/post', method='POST')
 def accept_temperature():
     " Temperature receiving backend "
     ip_address = request.environ.get("REMOTE_ADDR")
@@ -121,4 +129,18 @@ def accept_temperature():
     return dict()
 
 
-bottle.run(server=bottle.CGIServer)
+class StripPathMiddleware(object):
+    '''
+    Get that slash out of the request
+    '''
+    def __init__(self, attr):
+        self.attr = attr
+    def __call__(self, environ, h_data):
+        environ['PATH_INFO'] = environ['PATH_INFO'].rstrip('/')
+        return self.a(environ, h_data)
+
+if __name__ == '__main__':
+    bottle.run(app=StripPathMiddleware(app),
+        server='python_server',
+        host='0.0.0.0',
+        port=8080)
